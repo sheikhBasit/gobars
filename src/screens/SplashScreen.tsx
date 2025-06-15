@@ -1,6 +1,6 @@
 // screens/SplashScreen.tsx
 import React, { useEffect } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View,  Image, StyleSheet } from 'react-native';
 
 type Props = {
   onFinish: () => void;
@@ -14,7 +14,7 @@ const SplashScreen: React.FC<Props> = ({ onFinish }) => {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../assets/logo.jpeg')} style={styles.image} />
+      <Image source={require('../../assets/logo.jpeg')} style={styles.image} />
       </View>
   );
 };

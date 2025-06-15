@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 
 
+
 type OnboardingScreenProps = {
   onComplete: () => void;
 };
@@ -27,20 +28,20 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     {
       title: 'Welcome Gobars',
       description:
-        "Find the best grooming experience in your city with just one tap! Don’t miss out on the haircut or treatment of your dreams. Let’s start now!",
-      image: require('../assets/onboard1.jpeg'),
+        'Find the best grooming experience in your city with just one tap! Don’t miss out on the haircut or treatment of your dreams. Let’s start now!',
+      image: require('../../assets/onboard1.jpeg'),
     },
     {
       title: 'Looking for barber?',
       description:
-        "Find the best barbershop around you in seconds, make an appointment, and enjoy the best grooming experience.",
-      image: require('../assets/onboard2.jpeg'),
+        'Find the best barbershop around you in seconds, make an appointment, and enjoy the best grooming experience.',
+      image: require('../../assets/onboard2.jpeg'),
     },
     {
       title: 'Everything in your hands',
       description:
-        "With Gobar, find high-quality barbershops, see reviews, and make appointments easily. Achieve your confident appearance!",
-      image: require('../assets/onboard3.jpeg'),
+        'With Gobar, find high-quality barbershops, see reviews, and make appointments easily. Achieve your confident appearance!',
+      image: require('../../assets/onboard3.jpeg'),
     },
   ];
 
@@ -131,7 +132,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                   }}
                 >
                   <Text style={styles.buttonText}>
-                    {currentIndex === slides.length - 1 ? 'Get Started' : 'Get Started'}
+                    Get Started
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -165,6 +166,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     alignItems: 'flex-start',
+    marginBottom:25,
   },
   title: {
     fontSize: 22,

@@ -1,134 +1,101 @@
-import React, { useState } from 'react';
-import type { PropsWithChildren } from 'react';
-import {
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import OnboardingScreen from './screens/OnboardingScreen'; // Import your onboarding component
-import SplashScreen from './screens/SplashScreen'; // Import your onboarding component
+import React, { useState, useEffect } from 'react';
+import { StatusBar } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import SplashScreen from './src/screens/SplashScreen.tsx';
+import LoginScreen from './src/screens/LoginScreen.tsx';
+import OnboardingScreen from './src/screens/OnboardingScreen.tsx';
+import HomeScreen from './src/screens/HomeScreen.tsx';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen.tsx';
+import RegisterScreen from './src/screens/RegisterScreen.tsx';
+import { RootStackParamList } from './types.ts';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+const Stack = createStackNavigator<RootStackParamList>();
 
-function Section({ children, title }: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
+const App = () => {
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Splash');
+  const [isLoading, setIsLoading] = useState(true);
 
-function MainAppContent() {
-  const isDarkMode = useColorScheme() === 'dark';
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-  const safePadding = '5%';
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const [userToken, hasCompletedOnboarding] = await Promise.all([
+          AsyncStorage.getItem('userToken'),
+          AsyncStorage.getItem('hasCompletedOnboarding'),
+        ]);
 
-  return (
-    <View style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView style={backgroundStyle}>
-        <View style={{ paddingRight: safePadding }}>
-          <Header />
-        </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
+        if (userToken) {
+          setInitialRoute(hasCompletedOnboarding === 'true' ? 'Home' : 'Onboarding');
+        } else {
+          setInitialRoute('Login');
+        }
+      } catch (error) {
+        console.error('Auth check failed', error);
+        setInitialRoute('Login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
+    checkAuthStatus();
+  }, []);
 
-function App(): React.JSX.Element {
-  const [showSplash, setShowSplash] = useState(true);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
-  if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
-  }
-
-  if (!showOnboarding) {
-    return <OnboardingScreen onComplete={() => setShowOnboarding(true)} />;
+  if (isLoading) {
+    return null;
   }
 
   return (
-    <>
+    <NavigationContainer>
       <StatusBar barStyle="light-content" backgroundColor="#363062" />
-      <MainAppContent />
-    </>
+      <Stack.Navigator
+        initialRouteName={initialRoute}
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen name="Login">
+          {(props:any) => (
+            <LoginScreen
+              {...props}
+              onLoginSuccess={async (token: string) => {
+                await AsyncStorage.setItem('userToken', token);
+                props.navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Onboarding' }],
+                });
+              }}
+              skipOnboarding={async () => {
+                await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+                props.navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home' }],
+                });
+              }}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Onboarding">
+          {(props:any) => (
+            <OnboardingScreen
+              {...props}
+              onComplete={async () => {
+                await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+                props.navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Home' }],
+                });
+              }}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
